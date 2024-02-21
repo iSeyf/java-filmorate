@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,46 +31,31 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film createFilm(@RequestBody Film film) {
+    public Film createFilm(@Valid @RequestBody Film film) {
         if (checkValid(film)) {
-            if (film.getId() == 0 || films.containsKey(film.getId())) {
-                film.setId(getNewId());
-            }
+            film.setId(getNewId());
             films.put(film.getId(), film);
-            log.info("Добавлен фильм: " + film.getName());
+            log.info("Добавлен фильм: {}", film.getName());
         }
         return film;
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
-        if (films.containsKey(film.getId())) {
-            if (checkValid(film)) {
-                films.put(film.getId(), film);
-                log.info("Фильм обновлен.");
-            }
-        } else {
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        if (!films.containsKey(film.getId())) {
             throw new ValidationException("Объект не найден.");
+        }
+        if (checkValid(film)) {
+            films.put(film.getId(), film);
+            log.info("Фильм {} обновлен.", film.getName());
         }
         return film;
     }
 
     private boolean checkValid(Film film) {
-        if (film.getName().isBlank()) {
-            log.info("Введена пустая строка.");
-            throw new ValidationException("Название фильма не может состоять только из пробелов.");
-        }
-        if (film.getDescription().length() > 200) {
-            log.info("Описание превысело 200 символов");
-            throw new ValidationException("Описание не должно превышать 200 символов.");
-        }
         if (film.getReleaseDate().isBefore(RELEASE_DATE)) {
             log.info("Введена некоректная дата релиза.");
             throw new ValidationException("Фильм не мог выйти раньше 28.12.1895.");
-        }
-        if (film.getDuration() < 0) {
-            log.info("Введена отрицательная продолжительность фильма.");
-            throw new ValidationException("Продолжительность фильма не может быть отрицательной.");
         }
         return true;
     }

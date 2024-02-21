@@ -5,16 +5,24 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserControllerTest {
     private UserController userController;
+    private Validator validator;
 
     @BeforeEach
     public void beforeEach() {
         userController = new UserController();
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
     }
 
     @Test
@@ -48,13 +56,14 @@ public class UserControllerTest {
         User user = new User(0, "usermail.ru", "userLogin", "userName",
                 LocalDate.of(1999, 11, 11));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user), "Email содержит @!");
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Email содержит @!");
 
         User user1 = new User(0, "", "userLogin", "userName",
                 LocalDate.of(1999, 11, 11));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user1), "Email не пуст!");
-        assertEquals(0, userController.getUsers().size(), "Список должен быть пустым.");
+        Set<ConstraintViolation<User>> violations1 = validator.validate(user1);
+        assertFalse(violations1.isEmpty(), "Email не пуст!");
     }
 
     @Test
@@ -62,7 +71,8 @@ public class UserControllerTest {
         User user = new User(0, "user@mail.ru", "", "userName",
                 LocalDate.of(1999, 11, 11));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user), "Логин не пуст!");
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Логин не пуст!");
 
         User user1 = new User(0, "user@mail.ru", "user Login", "userName",
                 LocalDate.of(1999, 11, 11));
@@ -85,7 +95,7 @@ public class UserControllerTest {
         User user = new User(0, "user@mail.ru", "userLogin", "userName",
                 LocalDate.now().plusDays(1));
 
-        assertThrows(ValidationException.class, () -> userController.createUser(user), "Дата рождения не некоректно!");
-        assertEquals(0, userController.getUsers().size(), "Список должен быть пустым.");
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        assertFalse(violations.isEmpty(), "Дата рождения не некоректно!");
     }
 }
