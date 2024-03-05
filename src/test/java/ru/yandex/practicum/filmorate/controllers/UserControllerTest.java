@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -20,7 +22,7 @@ public class UserControllerTest {
 
     @BeforeEach
     public void beforeEach() {
-        userController = new UserController();
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
@@ -34,7 +36,7 @@ public class UserControllerTest {
         userController.createUser(user);
 
         assertEquals(1, userController.getUsers().size(), "Количество пользователей не совпадает.");
-        assertEquals(user, userController.getUsers().get(0), "Пользователи не совпадают.");
+        assertEquals(user, userController.getUser(1), "Пользователи не совпадают.");
     }
 
     @Test
@@ -48,7 +50,7 @@ public class UserControllerTest {
         userController.updateUser(updatedUser);
 
         assertEquals(1, userController.getUsers().size(), "Количество пользователей не совпадает.");
-        assertEquals(updatedUser, userController.getUsers().get(0), "Пользователи не совпадают.");
+        assertEquals(updatedUser, userController.getUser(1), "Пользователи не совпадают.");
     }
 
     @Test

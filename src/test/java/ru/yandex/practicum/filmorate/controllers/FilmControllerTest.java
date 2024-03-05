@@ -4,12 +4,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,7 +24,7 @@ public class FilmControllerTest {
 
     @BeforeEach
     public void beforeEach() {
-        filmController = new FilmController();
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage()));
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
@@ -28,7 +32,7 @@ public class FilmControllerTest {
     @Test
     public void getFilmsTest() {
         assertEquals(0, filmController.getFilms().size(), "Список фильмов должен быть пустым.");
-        Film film = new Film(0, "film1", "film1Description",
+        Film film = new Film("film1", "film1Description",
                 LocalDate.of(1999, 11, 11), 180);
         filmController.createFilm(film);
 
@@ -38,7 +42,7 @@ public class FilmControllerTest {
 
     @Test
     public void postFilmTest() {
-        Film film = new Film(0, "film1", "film1Description",
+        Film film = new Film("film1", "film1Description",
                 LocalDate.of(1999, 11, 11), 180);
         filmController.createFilm(film);
 
@@ -48,7 +52,7 @@ public class FilmControllerTest {
 
     @Test
     public void putFilmTest() {
-        Film film = new Film(0, "film1", "film1Description",
+        Film film = new Film("film1", "film1Description",
                 LocalDate.of(1999, 11, 11), 180);
         filmController.createFilm(film);
 
@@ -83,7 +87,7 @@ public class FilmControllerTest {
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Описание меньше 200 символов.");
 
-        Film film1 = new Film(0, "film1", "film1DescriptionFilm1DescriptionFilm1Description" +
+        Film film1 = new Film("film1", "film1DescriptionFilm1DescriptionFilm1Description" +
                 "Film1DescriptionFilm1DescriptionFilm1DescriptionFilm1DescriptionFilm1DescriptionFilm1Description" +
                 "Film1DescriptionFilm1DescriptionFilm1DescriptionFilm1Des",
                 LocalDate.of(1999, 11, 11), 180);
@@ -94,13 +98,13 @@ public class FilmControllerTest {
 
     @Test
     public void filmDateTest() {
-        Film film = new Film(0, "film1", "film1Description",
+        Film film = new Film("film1", "film1Description",
                 LocalDate.of(1895, 12, 27), 180);
 
         assertThrows(ValidationException.class, () -> filmController.createFilm(film), "Релиз фильма должен быть раньше 28.12.1895");
         assertEquals(0, filmController.getFilms().size(), "Список фильмов должен быть пустым.");
 
-        Film film1 = new Film(0, "film1", "film1Description",
+        Film film1 = new Film("film1", "film1Description",
                 LocalDate.of(1895, 12, 28), 180);
         filmController.createFilm(film1);
 
@@ -109,15 +113,47 @@ public class FilmControllerTest {
 
     @Test
     public void filmDurationTest() {
-        Film film = new Film(0, "film1", "film1Description",
+        Film film = new Film("film1", "film1Description",
                 LocalDate.of(1999, 11, 11), -10);
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty(), "Продолжительность должна быть отрицательной.");
 
-        Film film1 = new Film(0, "film1", "film1Description",
+        Film film1 = new Film("film1", "film1Description",
                 LocalDate.of(1999, 11, 11), 10);
         filmController.createFilm(film1);
 
         assertEquals(1, filmController.getFilms().size(), "Количество фильмов не совпадает.");
+    }
+
+    @Test
+    public void likeTest() {
+        Film film = new Film("film1", "film1Description",
+                LocalDate.of(1999, 11, 11), 180);
+        filmController.createFilm(film);
+        Film film2 = new Film("film2", "film2Description",
+                LocalDate.of(1999, 11, 11), 180);
+        filmController.createFilm(film2);
+        Film film3 = new Film("film3", "film3Description",
+                LocalDate.of(1999, 11, 11), 180);
+        filmController.createFilm(film3);
+        filmController.addLike(1, 3);
+        filmController.addLike(1, 4);
+        filmController.addLike(2, 4);
+        filmController.addLike(3, 1);
+        filmController.addLike(3, 4);
+        filmController.addLike(3, 3);
+        filmController.addLike(3, 2);
+
+        Film updatedFilm = new Film(3, "updatedFilm3", "film3Description",
+                LocalDate.of(1999, 11, 11), 180);
+        filmController.updateFilm(updatedFilm);
+
+        List<Film> best = filmController.getTopFilms(3);
+        List<Film> best1 = new ArrayList<>();
+        best1.add(updatedFilm);
+        best1.add(film);
+        best1.add(film2);
+        assertEquals(best, best1);
+        System.out.println(best);
     }
 }
