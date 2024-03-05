@@ -70,9 +70,6 @@ public class UserService {
         if (!getUsers().containsKey(friendId)) {
             throw new ElementNotFoundException("Пользователь " + friendId + " не найден.");
         }
-        if (!getUser(id).getFriends().contains(friendId) && !getUser(friendId).getFriends().contains(id)) {
-            throw new ElementNotFoundException("Пользователь не найден в списке друзей");
-        }
         getUser(id).deleteFriend(friendId);
         getUser(friendId).deleteFriend(id);
         return getUser(friendId);
