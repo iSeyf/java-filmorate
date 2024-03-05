@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -70,6 +69,9 @@ public class UserService {
         }
         if (!getUsers().containsKey(friendId)) {
             throw new ElementNotFoundException("Пользователь " + friendId + " не найден.");
+        }
+        if (!getUser(id).getFriends().contains(friendId) && !getUser(friendId).getFriends().contains(id)) {
+            throw new ElementNotFoundException("Пользователь не найден в списке друзей");
         }
         getUser(id).deleteFriend(friendId);
         getUser(friendId).deleteFriend(id);

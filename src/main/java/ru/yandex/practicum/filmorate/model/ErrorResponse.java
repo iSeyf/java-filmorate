@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 public class ErrorResponse {
-
     String error;
     String description;
 

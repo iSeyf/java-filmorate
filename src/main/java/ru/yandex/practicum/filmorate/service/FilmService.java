@@ -39,6 +39,9 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
+        if (!getFilms().containsKey(id)) {
+            throw new ElementNotFoundException("Фильм " + id + " не найден.");
+        }
         getFilm(id).addLike(userId);
     }
 
