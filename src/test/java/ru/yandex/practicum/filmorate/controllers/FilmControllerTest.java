@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -126,7 +127,30 @@ public class FilmControllerTest {
     }
 
     @Test
-    public void likeTest() {
+    public void addAndDeleteLikeTest() {
+        Film film = new Film("film", "filmDescription",
+                LocalDate.of(1999, 11, 11), 180);
+        filmController.createFilm(film);
+
+        filmController.addLike(1, 1);
+
+        assertThrows(ElementNotFoundException.class, () -> filmController.addLike(2, 1), "Ошибка не выводится");
+        assertEquals(1, filmController.getFilm(1).getLikes().size(), "Количество лайков не совпадает.");
+
+        Film updatedFilm = new Film(1, "updatedFilm", "filmDescription",
+                LocalDate.of(1999, 11, 11), 180);
+        filmController.updateFilm(updatedFilm);
+
+        assertEquals(1, filmController.getFilm(1).getLikes().size(), "Лайки не передаются в обновленный фильм.");
+
+        filmController.deleteLike(1, 1);
+
+        assertThrows(ElementNotFoundException.class, () -> filmController.deleteLike(2, 1), "Ошибка не выводится");
+        assertEquals(0, filmController.getFilm(1).getLikes().size(), "Количество лайков не совпадает.");
+    }
+
+    @Test
+    public void getTopFilmsTest() {
         Film film = new Film("film1", "film1Description",
                 LocalDate.of(1999, 11, 11), 180);
         filmController.createFilm(film);
@@ -136,6 +160,7 @@ public class FilmControllerTest {
         Film film3 = new Film("film3", "film3Description",
                 LocalDate.of(1999, 11, 11), 180);
         filmController.createFilm(film3);
+
         filmController.addLike(1, 3);
         filmController.addLike(1, 4);
         filmController.addLike(2, 4);
@@ -144,16 +169,22 @@ public class FilmControllerTest {
         filmController.addLike(3, 3);
         filmController.addLike(3, 2);
 
-        Film updatedFilm = new Film(3, "updatedFilm3", "film3Description",
-                LocalDate.of(1999, 11, 11), 180);
-        filmController.updateFilm(updatedFilm);
-
         List<Film> best = filmController.getTopFilms(3);
         List<Film> best1 = new ArrayList<>();
-        best1.add(updatedFilm);
+        best1.add(film3);
         best1.add(film);
         best1.add(film2);
-        assertEquals(best, best1);
-        System.out.println(best);
+        assertEquals(best, best1, "Ошибка в списке.");
+    }
+
+    @Test
+    public void getFilmTest() {
+        Film film = new Film("film1", "film1Description",
+                LocalDate.of(1999, 11, 11), 180);
+        filmController.createFilm(film);
+
+        assertEquals(film, filmController.getFilm(1), "Фильмы не совпадают.");
+
+        assertThrows(ElementNotFoundException.class, () -> filmController.getFilm(2), "Ошибка не выводится");
     }
 }

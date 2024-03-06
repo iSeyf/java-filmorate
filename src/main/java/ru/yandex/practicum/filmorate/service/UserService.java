@@ -13,7 +13,7 @@ import java.util.Set;
 
 @Service
 public class UserService {
-    UserStorage userStorage;
+    private UserStorage userStorage;
 
     @Autowired
     public UserService(UserStorage userStorage) {

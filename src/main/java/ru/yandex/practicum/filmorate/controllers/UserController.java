@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @Slf4j
 public class UserController {
-    UserService userService;
+    private UserService userService;
 
     @Autowired
     public UserController(UserService userService) {
