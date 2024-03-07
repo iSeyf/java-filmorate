@@ -7,7 +7,9 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 @Slf4j
@@ -18,9 +20,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     private int filmId;
 
     @Override
-    public HashMap<Integer, Film> getFilms() {
+    public List<Film> getFilms() {
         log.info("Вызван GET-запрос. Получен список фильмов.");
-        return films;
+        return new ArrayList<>(films.values());
     }
 
     @Override
@@ -45,6 +47,14 @@ public class InMemoryFilmStorage implements FilmStorage {
             log.info("Фильм {} обновлен.", film.getName());
         }
         return film;
+    }
+
+    @Override
+    public Film getFilm(int id) {
+        if (!films.containsKey(id)) {
+            throw new ElementNotFoundException("Фильм " + id + " не найден.");
+        }
+        return films.get(id);
     }
 
     private boolean checkValid(Film film) {

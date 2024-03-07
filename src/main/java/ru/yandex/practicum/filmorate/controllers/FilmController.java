@@ -31,7 +31,7 @@ public class FilmController {
 
     @GetMapping
     public List<Film> getFilms() {
-        return new ArrayList<>(filmService.getFilms().values());
+        return new ArrayList<>(filmService.getFilms());
     }
 
     @PostMapping

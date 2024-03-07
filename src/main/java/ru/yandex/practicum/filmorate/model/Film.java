@@ -9,8 +9,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Film.
@@ -30,7 +30,7 @@ public class Film {
     @Positive(message = "Продолжительность фильма не может быть отрицательной или равняться нулю.")
     private int duration;
 
-    private Set<Integer> likes = new TreeSet<>();
+    private Set<Integer> likes = new HashSet<>();
 
     public Film(String name, String description, LocalDate releaseDate, int duration) {
         this.name = name;

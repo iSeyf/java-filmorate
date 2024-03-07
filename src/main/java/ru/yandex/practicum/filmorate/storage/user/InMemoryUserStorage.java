@@ -6,9 +6,9 @@ import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-
+import java.util.ArrayList;
 import java.util.HashMap;
-
+import java.util.List;
 
 @Component
 @Slf4j
@@ -17,9 +17,9 @@ public class InMemoryUserStorage implements UserStorage {
     private int userId = 0;
 
     @Override
-    public HashMap<Integer, User> getUsers() {
+    public List<User> getUsers() {
         log.info("Вызван GET-запрос. Выведен список пользователей.");
-        return users;
+        return new ArrayList<>(users.values());
     }
 
     @Override
@@ -42,6 +42,14 @@ public class InMemoryUserStorage implements UserStorage {
             log.info("Пользователь {} обновлен.", user.getId());
         }
         return user;
+    }
+
+    @Override
+    public User getUser(int id) {
+        if (!users.containsKey(id)) {
+            throw new ElementNotFoundException("Пользователь " + id + " не найден.");
+        }
+        return users.get(id);
     }
 
     private boolean checkValid(User user) {

@@ -5,21 +5,21 @@ import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
     private FilmStorage filmStorage;
+    private UserService userService;
 
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, UserService userService) {
         this.filmStorage = filmStorage;
+        this.userService = userService;
     }
 
-    public HashMap<Integer, Film> getFilms() {
+    public List<Film> getFilms() {
         return filmStorage.getFilms();
     }
 
@@ -32,20 +32,16 @@ public class FilmService {
     }
 
     public Film getFilm(int id) {
-        if (!getFilms().containsKey(id)) {
-            throw new ElementNotFoundException("Фильм " + id + " не найден.");
-        }
-        return getFilms().get(id);
+        return filmStorage.getFilm(id);
     }
 
     public void addLike(int id, int userId) {
-        if (!getFilms().containsKey(id)) {
-            throw new ElementNotFoundException("Фильм " + id + " не найден.");
-        }
+        userService.getUser(userId);
         getFilm(id).addLike(userId);
     }
 
     public void deleteLike(int id, int userId) {
+        userService.getUser(userId);
         if (!getFilm(id).getLikes().contains(userId)) {
             throw new ElementNotFoundException("Лайк не найден.");
         }
@@ -53,9 +49,7 @@ public class FilmService {
     }
 
     public List<Film> getTopFilms(int count) {
-        Collection<Film> films = getFilms().values();
-
-        List<Film> topFilms = films.stream()
+        List<Film> topFilms = getFilms().stream()
                 .sorted(Comparator.comparingInt(film -> -film.getLikes().size()))
                 .limit(count)
                 .collect(Collectors.toList());

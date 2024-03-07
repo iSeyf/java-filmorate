@@ -30,7 +30,7 @@ public class UserController {
 
     @GetMapping
     public List<User> getUsers() {
-        return new ArrayList<>(userService.getUsers().values());
+        return new ArrayList<>(userService.getUsers());
     }
 
     @PostMapping

@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -21,11 +24,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class FilmControllerTest {
     private FilmController filmController;
+    private UserService userService;
     private Validator validator;
 
     @BeforeEach
     public void beforeEach() {
-        filmController = new FilmController(new FilmService(new InMemoryFilmStorage()));
+        userService = new UserService(new InMemoryUserStorage());
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage(), userService));
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
@@ -132,6 +137,10 @@ public class FilmControllerTest {
                 LocalDate.of(1999, 11, 11), 180);
         filmController.createFilm(film);
 
+        User user = new User(0, "user@mail.ru", "userLogin", "userName",
+                LocalDate.of(1999, 11, 11));
+        userService.createUser(user);
+
         filmController.addLike(1, 1);
 
         assertThrows(ElementNotFoundException.class, () -> filmController.addLike(2, 1), "Ошибка не выводится");
@@ -160,6 +169,19 @@ public class FilmControllerTest {
         Film film3 = new Film("film3", "film3Description",
                 LocalDate.of(1999, 11, 11), 180);
         filmController.createFilm(film3);
+
+        User user1 = new User(0, "user@mail.ru", "userLogin", "userName",
+                LocalDate.of(1999, 11, 11));
+        userService.createUser(user1);
+        User user2 = new User(0, "user@mail.ru", "userLogin", "userName",
+                LocalDate.of(1999, 11, 11));
+        userService.createUser(user2);
+        User user3 = new User(0, "user@mail.ru", "userLogin", "userName",
+                LocalDate.of(1999, 11, 11));
+        userService.createUser(user3);
+        User user4 = new User(0, "user@mail.ru", "userLogin", "userName",
+                LocalDate.of(1999, 11, 11));
+        userService.createUser(user4);
 
         filmController.addLike(1, 3);
         filmController.addLike(1, 4);
