@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Comparator;
 import java.util.List;
@@ -12,11 +13,11 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     private FilmStorage filmStorage;
-    private UserService userService;
+    private UserStorage userStorage;
 
-    public FilmService(FilmStorage filmStorage, UserService userService) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
-        this.userService = userService;
+        this.userStorage = userStorage;
     }
 
     public List<Film> getFilms() {
@@ -36,12 +37,12 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
-        userService.getUser(userId);
+        userStorage.getUser(userId);
         getFilm(id).addLike(userId);
     }
 
     public void deleteLike(int id, int userId) {
-        userService.getUser(userId);
+        userStorage.getUser(userId);
         if (!getFilm(id).getLikes().contains(userId)) {
             throw new ElementNotFoundException("Лайк не найден.");
         }
