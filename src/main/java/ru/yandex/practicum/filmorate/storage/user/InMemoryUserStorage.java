@@ -52,6 +52,20 @@ public class InMemoryUserStorage implements UserStorage {
         return users.get(id);
     }
 
+    @Override
+    public User addFriend(int id, int friendId) {
+        getUser(id).addFriend(friendId);
+        getUser(friendId).addFriend(id);
+        return getUser(friendId);
+    }
+
+    @Override
+    public User deleteFriend(int id, int friendId) {
+        getUser(id).deleteFriend(friendId);
+        getUser(friendId).deleteFriend(id);
+        return getUser(friendId);
+    }
+
     private boolean checkValid(User user) {
         if (user.getLogin().contains(" ")) {
             log.info("Логин содержит пробел.");

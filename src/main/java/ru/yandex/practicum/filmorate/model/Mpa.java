@@ -9,7 +9,16 @@ import lombok.Setter;
 @Setter
 @Data
 @AllArgsConstructor
-public class Genre {
+public class Mpa {
     private int id;
     private String name;
+
+    public Mpa() {
+        id = 0;
+        name = null;
+    }
+
+    public Mpa(int id) {
+        this.id = id;
+    }
 }

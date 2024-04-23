@@ -57,6 +57,19 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.get(id);
     }
 
+    @Override
+    public void addLike(int id, int userId) {
+        getFilm(id).addLike(userId);
+    }
+
+    @Override
+    public void deleteLike(int id, int userId) {
+        if (!getFilm(id).getLikes().contains(userId)) {
+            throw new ElementNotFoundException("Лайк не найден.");
+        }
+        getFilm(id).deleteLike(userId);
+    }
+
     private boolean checkValid(Film film) {
         if (film.getReleaseDate().isBefore(RELEASE_DATE)) {
             log.info("Введена некоректная дата релиза.");
