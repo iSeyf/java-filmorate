@@ -31,14 +31,11 @@ public class MpaDbStorage implements MpaStorage {
 
     @Override
     public Mpa getMpa(int id) {
-        String sql = "SELECT * FROM mpa WHERE mpa_id = ?";
-        try {
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
-                String name = rs.getString("name");
-                return new Mpa(id, name);
-            });
-        } catch (Exception e) {
-            throw new ElementNotFoundException("В базе нет таких данных");
+        String sql = "SELECT name FROM mpa WHERE mpa_id = ?";
+        List<String> name = jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("name"), id);
+        if (name.isEmpty()) {
+            throw new ElementNotFoundException("Рейтинг не найден");
         }
+        return new Mpa(id, name.get(0));
     }
 }

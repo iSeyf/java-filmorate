@@ -8,7 +8,7 @@ import java.util.List;
 
 @Service
 public class MpaService {
-    MpaStorage mpaStorage;
+    private MpaStorage mpaStorage;
 
     public MpaService(MpaStorage mpaStorage) {
         this.mpaStorage = mpaStorage;

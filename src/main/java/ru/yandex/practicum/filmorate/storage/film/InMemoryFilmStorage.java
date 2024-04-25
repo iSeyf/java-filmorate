@@ -8,15 +8,17 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
     private static final LocalDate RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private HashMap<Integer, Film> films = new HashMap<>();
+    private HashMap<Integer, List<Integer>> filmLikes = new HashMap<>();
     private int filmId;
 
     @Override
@@ -30,6 +32,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (checkValid(film)) {
             film.setId(getNewId());
             films.put(film.getId(), film);
+            filmLikes.put(film.getId(), new ArrayList<>());
             log.info("Добавлен фильм: {}", film.getName());
         }
         return film;
@@ -40,7 +43,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (!films.containsKey(film.getId())) {
             throw new ElementNotFoundException("Объект не найден.");
         }
-        Set<Integer> likes = films.get(film.getId()).getLikes();
+        int likes = films.get(film.getId()).getLikes();
         film.setLikes(likes);
         if (checkValid(film)) {
             films.put(film.getId(), film);
@@ -58,16 +61,25 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void addLike(int id, int userId) {
-        getFilm(id).addLike(userId);
+    public void addLike(Integer id, Integer userId) {
+        getFilm(id);
+        filmLikes.get(id).add(userId);
+        getFilm(id).setLikes(getFilm(id).getLikes() + 1);
     }
 
     @Override
-    public void deleteLike(int id, int userId) {
-        if (!getFilm(id).getLikes().contains(userId)) {
-            throw new ElementNotFoundException("Лайк не найден.");
-        }
-        getFilm(id).deleteLike(userId);
+    public void deleteLike(Integer id, Integer userId) {
+        getFilm(id);
+        filmLikes.get(id).remove(userId);
+        getFilm(id).setLikes(getFilm(id).getLikes() - 1);
+    }
+
+    @Override
+    public List<Film> getTopFilms(int count) {
+        return getFilms().stream()
+                .sorted(Comparator.comparingInt(film -> -film.getLikes()))
+                .limit(count)
+                .collect(Collectors.toList());
     }
 
     private boolean checkValid(Film film) {

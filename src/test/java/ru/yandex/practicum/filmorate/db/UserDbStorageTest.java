@@ -82,38 +82,38 @@ class UserDbStorageTest {
         userStorage.createUser(user2);
         userStorage.addFriend(user1.getId(), user2.getId());
 
-        assertThat(userStorage.getUser(1).getFriends().size())
+        assertThat(userStorage.getUser(1).getFriends())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(1);
 
-        assertThat(userStorage.getUser(2).getFriends().size())
+        assertThat(userStorage.getUser(2).getFriends())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(0);
 
         userStorage.addFriend(user2.getId(), user1.getId());
 
-        assertThat(userStorage.getUser(2).getFriends().size())
+        assertThat(userStorage.getUser(2).getFriends())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(1);
 
         userStorage.deleteFriend(user1.getId(), user2.getId());
 
-        assertThat(userStorage.getUser(1).getFriends().size())
+        assertThat(userStorage.getUser(1).getFriends())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(0);
 
-        assertThat(userStorage.getUser(2).getFriends().size())
+        assertThat(userStorage.getUser(2).getFriends())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(1);
 
         userStorage.deleteFriend(user2.getId(), user1.getId());
 
-        assertThat(userStorage.getUser(2).getFriends().size())
+        assertThat(userStorage.getUser(2).getFriends())
                 .isNotNull()
                 .usingRecursiveComparison()
                 .isEqualTo(0);

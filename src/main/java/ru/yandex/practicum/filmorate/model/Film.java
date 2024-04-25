@@ -10,9 +10,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Film.
@@ -32,9 +30,9 @@ public class Film {
     @Positive(message = "Продолжительность фильма не может быть отрицательной или равняться нулю.")
     private int duration;
 
-    private Set<Integer> likes = new HashSet<>();
+    private int likes;
     private List<Genre> genres = new ArrayList<>();
-    private Mpa mpa = null;
+    private Mpa mpa;
 
     public Film(String name, String description, LocalDate releaseDate, int duration) {
         this.name = name;
@@ -49,13 +47,5 @@ public class Film {
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-    }
-
-    public void addLike(int userId) {
-        likes.add(userId);
-    }
-
-    public void deleteLike(int userId) {
-        likes.remove(userId);
     }
 }

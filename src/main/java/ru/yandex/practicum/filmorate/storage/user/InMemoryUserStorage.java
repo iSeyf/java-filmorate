@@ -8,12 +8,15 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
     private final HashMap<Integer, User> users = new HashMap<>();
+    private final HashMap<Integer, Set<Integer>> userFriends = new HashMap<>();
     private int userId = 0;
 
     @Override
@@ -53,17 +56,54 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User addFriend(int id, int friendId) {
-        getUser(id).addFriend(friendId);
-        getUser(friendId).addFriend(id);
+    public User addFriend(Integer id, Integer friendId) {
+        Set<Integer> userFriendSet = userFriends.getOrDefault(id, new HashSet<>());
+        userFriendSet.add(friendId);
+        userFriends.put(id, userFriendSet);
+
+        Set<Integer> friendFriendSet = userFriends.getOrDefault(friendId, new HashSet<>());
+        friendFriendSet.add(id);
+        userFriends.put(friendId, friendFriendSet);
+
         return getUser(friendId);
     }
 
     @Override
-    public User deleteFriend(int id, int friendId) {
-        getUser(id).deleteFriend(friendId);
-        getUser(friendId).deleteFriend(id);
+    public User deleteFriend(Integer id, Integer friendId) {
+        getUser(id);
+        getUser(friendId);
+        if (userFriends.get(id).contains(friendId)) {
+            userFriends.get(id).remove(friendId);
+            userFriends.get(friendId).remove(id);
+        }
         return getUser(friendId);
+    }
+
+    @Override
+    public List<User> getFriends(int id) {
+        getUser(id);
+        Set<Integer> friendsId = userFriends.get(id);
+        List<User> friends = new ArrayList<>();
+        for (Integer friendId : friendsId) {
+            friends.add(getUser(friendId));
+        }
+        return friends;
+    }
+
+    @Override
+    public List<User> getCommonFriends(Integer id, Integer otherId) {
+        getUser(id);
+        getUser(otherId);
+        Set<Integer> friends1 = userFriends.get(id);
+        Set<Integer> friends2 = userFriends.get(otherId);
+        List<User> commonFriend = new ArrayList<>();
+        if (friends1 != null && friends2 != null) {
+            friends1.retainAll(friends2);
+            for (Integer friend : friends1) {
+                commonFriend.add(getUser(friend));
+            }
+        }
+        return commonFriend;
     }
 
     private boolean checkValid(User user) {

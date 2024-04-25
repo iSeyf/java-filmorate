@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.ElementNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -16,10 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Repository
@@ -33,7 +29,10 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getUsers() {
-        String sql = "SELECT * FROM users;";
+        String sql = "SELECT u.*, COUNT(f.friend_id) AS friends_count " +
+                "FROM users AS u " +
+                "LEFT JOIN friends AS f ON u.user_id = f.user_id " +
+                "GROUP BY u.user_id;";
         return jdbcTemplate.query(sql, (rs, rowNum) -> (mapRowToUser(rs)));
     }
 
@@ -65,16 +64,45 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User getUser(int id) {
-        String sql = "SELECT * FROM users WHERE user_id = ?;";
-        try {
-            return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> mapRowToUser(rs));
-        } catch (Throwable e) {
+        String sql = "SELECT u.*, COUNT(f.friend_id) AS friends_count " +
+                "FROM users AS u " +
+                "LEFT JOIN friends AS f ON u.user_id = f.user_id " +
+                "WHERE u.user_id = ? " +
+                "GROUP BY u.user_id;";
+
+        List<User> user = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToUser(rs), id);
+        if (user.isEmpty()) {
             throw new ElementNotFoundException("Объект не найден");
         }
+        return user.get(0);
     }
 
     @Override
-    public User addFriend(int id, int friendId) {
+    public List<User> getFriends(int id) {
+        getUser(id);
+        String sql = "SELECT u.*, COUNT(ff.friend_id) AS friends_count " +
+                "FROM friends AS f " +
+                "JOIN users AS u ON f.friend_id = u.user_id " +
+                "LEFT JOIN friends AS ff ON f.friend_id = ff.user_id " +
+                "WHERE f.user_id = ? " +
+                "GROUP BY u.user_id;";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToUser(rs), id);
+    }
+
+    @Override
+    public List<User> getCommonFriends(Integer id, Integer otherId) {
+        String sql = "SELECT u.*, COUNT(f3.friend_id) AS friends_count " +
+                "FROM users AS u " +
+                "JOIN friends AS f1 ON f1.friend_id = u.user_id " +
+                "JOIN friends AS f2 ON f2.friend_id = u.user_id " +
+                "LEFT JOIN friends AS f3 ON f3.user_id = u.user_id " +
+                "WHERE f1.user_id = ? AND f2.user_id = ?;";
+
+        return jdbcTemplate.query(sql, new Object[]{id, otherId}, (rs, rowNum) -> mapRowToUser(rs));
+    }
+
+    @Override
+    public User addFriend(Integer id, Integer friendId) {
         getUser(id);
         getUser(friendId);
         String sqlCreate = "INSERT INTO friends(user_id, friend_id, status) VALUES (?, ?, ?);";
@@ -91,7 +119,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User deleteFriend(int id, int friendId) {
+    public User deleteFriend(Integer id, Integer friendId) {
         getUser(id);
         getUser(friendId);
         String sqlDelete = "DELETE FROM friends WHERE user_id = ? AND friend_id = ?;";
@@ -110,24 +138,14 @@ public class UserDbStorage implements UserStorage {
     }
 
     private User mapRowToUser(ResultSet rs) throws SQLException {
-        String sqlGetFriends = "SELECT friend_id FROM friends WHERE user_id = ?";
-        String sqlGetFriendStatus = "SELECT * FROM friends WHERE user_id = ?";
-
         int id = rs.getInt("user_id");
         String email = rs.getString("email");
         String login = rs.getString("login");
         String name = rs.getString("name");
         LocalDate birthday = rs.getDate("birthday").toLocalDate();
+        int friends = rs.getInt("friends_count");
 
-        HashSet<Integer> friends = new HashSet<>(jdbcTemplate.query(sqlGetFriends,
-                (rs1, rowNum) -> (rs1.getInt("friend_id")), id));
 
-        Map<Integer, Boolean> friendStatus = new HashMap<>();
-        SqlRowSet friendsRows = jdbcTemplate.queryForRowSet(sqlGetFriendStatus, id);
-        if (friendsRows.next()) {
-            friendStatus.put(friendsRows.getInt("friend_id"), friendsRows.getBoolean("status"));
-        }
-
-        return new User(id, email, login, name, birthday, friends, friendStatus);
+        return new User(id, email, login, name, birthday, friends);
     }
 }
