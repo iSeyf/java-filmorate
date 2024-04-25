@@ -108,8 +108,17 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sqlDeleteGenres, film.getId());
 
         String sqlAddGenre = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+        List<Object[]> batchArgs = new ArrayList<>();
+        Set<Integer> existingGenres = new HashSet<>();
         for (Genre genre : film.getGenres()) {
-            jdbcTemplate.update(sqlAddGenre, film.getId(), genre.getId());
+            int genreId = genre.getId();
+            if (!existingGenres.contains(genreId)) {
+                batchArgs.add(new Object[]{film.getId(), genre.getId()});
+                existingGenres.add(genreId);
+            }
+        }
+        if (!batchArgs.isEmpty()) {
+            jdbcTemplate.batchUpdate(sqlAddGenre, batchArgs);
         }
         return film;
     }
