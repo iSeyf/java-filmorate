@@ -30,7 +30,7 @@ public class Film {
     @Positive(message = "Продолжительность фильма не может быть отрицательной или равняться нулю.")
     private int duration;
 
-    private int likes;
+    private int likesCount;
     private List<Genre> genres = new ArrayList<>();
     private Mpa mpa;
 

@@ -24,7 +24,7 @@ public class User {
     @Past(message = "Дата рождения не может быть в будущем.")
     @NotNull
     private LocalDate birthday;
-    private int friends;
+    private int friendsCount;
 
     public User(int id, String email, String login, String name, LocalDate birthday) {
         this.id = id;

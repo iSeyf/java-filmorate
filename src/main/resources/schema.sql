@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS films (
     description VARCHAR(200) NOT NULL,
     release_date DATE NOT NULL,
     duration INTEGER NOT NULL,
+    likes_count INTEGER DEFAULT 0,
     mpa_id INTEGER,
     CONSTRAINT fk_rating_id FOREIGN KEY (mpa_id) REFERENCES mpa(mpa_id)
 );
@@ -20,7 +21,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL,
     login VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    birthday DATE NOT NULL
+    birthday DATE NOT NULL,
+    friends_count INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS friends (

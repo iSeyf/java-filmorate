@@ -21,6 +21,7 @@ import java.util.List;
 @Repository
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final String sqlGetUsers = "SELECT * FROM users ";
 
     @Autowired
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
@@ -29,11 +30,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getUsers() {
-        String sql = "SELECT u.*, COUNT(f.friend_id) AS friends_count " +
-                "FROM users AS u " +
-                "LEFT JOIN friends AS f ON u.user_id = f.user_id " +
-                "GROUP BY u.user_id;";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> (mapRowToUser(rs)));
+        return jdbcTemplate.query(sqlGetUsers, (rs, rowNum) -> (mapRowToUser(rs)));
     }
 
     @Override
@@ -64,13 +61,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User getUser(int id) {
-        String sql = "SELECT u.*, COUNT(f.friend_id) AS friends_count " +
-                "FROM users AS u " +
-                "LEFT JOIN friends AS f ON u.user_id = f.user_id " +
-                "WHERE u.user_id = ? " +
-                "GROUP BY u.user_id;";
-
-        List<User> user = jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToUser(rs), id);
+        List<User> user = jdbcTemplate.query(sqlGetUsers + "WHERE user_id = ?;", (rs, rowNum) -> mapRowToUser(rs), id);
         if (user.isEmpty()) {
             throw new ElementNotFoundException("Объект не найден");
         }
@@ -80,22 +71,19 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getFriends(int id) {
         getUser(id);
-        String sql = "SELECT u.*, COUNT(ff.friend_id) AS friends_count " +
+        String sql = "SELECT u.* " +
                 "FROM friends AS f " +
                 "JOIN users AS u ON f.friend_id = u.user_id " +
-                "LEFT JOIN friends AS ff ON f.friend_id = ff.user_id " +
-                "WHERE f.user_id = ? " +
-                "GROUP BY u.user_id;";
+                "WHERE f.user_id = ?;";
         return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToUser(rs), id);
     }
 
     @Override
     public List<User> getCommonFriends(Integer id, Integer otherId) {
-        String sql = "SELECT u.*, COUNT(f3.friend_id) AS friends_count " +
+        String sql = "SELECT u.* " +
                 "FROM users AS u " +
                 "JOIN friends AS f1 ON f1.friend_id = u.user_id " +
                 "JOIN friends AS f2 ON f2.friend_id = u.user_id " +
-                "LEFT JOIN friends AS f3 ON f3.user_id = u.user_id " +
                 "WHERE f1.user_id = ? AND f2.user_id = ?;";
 
         return jdbcTemplate.query(sql, new Object[]{id, otherId}, (rs, rowNum) -> mapRowToUser(rs));
@@ -107,13 +95,15 @@ public class UserDbStorage implements UserStorage {
         getUser(friendId);
         String sqlCreate = "INSERT INTO friends(user_id, friend_id, status) VALUES (?, ?, ?);";
         String sqlUpdate = "UPDATE friends SET status = ? WHERE user_id = ? AND friend_id = ?";
-        if (checkFriend(friendId, id)) {
-            if (!checkFriend(id, friendId)) {
+        if (!checkFriend(id, friendId)) {
+            if (checkFriend(friendId, id)) {
                 jdbcTemplate.update(sqlCreate, id, friendId, true);
                 jdbcTemplate.update(sqlUpdate, true, friendId, id);
+            } else {
+                jdbcTemplate.update(sqlCreate, id, friendId, false);
             }
-        } else {
-            jdbcTemplate.update(sqlCreate, id, friendId, false);
+            String sqlUpdateFriendsCount = "UPDATE users SET friends_count = friends_count + 1 WHERE user_id = ?";
+            jdbcTemplate.update(sqlUpdateFriendsCount, id);
         }
         return getUser(friendId);
     }
@@ -126,7 +116,11 @@ public class UserDbStorage implements UserStorage {
         String sqlUpdate = "UPDATE friends SET status = ? WHERE user_id = ? AND friend_id = ?";
         if (checkFriend(id, friendId)) {
             jdbcTemplate.update(sqlDelete, id, friendId);
-            jdbcTemplate.update(sqlUpdate, false, friendId, id);
+            if (checkFriend(friendId, id)) {
+                jdbcTemplate.update(sqlUpdate, false, friendId, id);
+            }
+            String updateFriendsCountSql = "UPDATE users SET friends_count = friends_count - 1 WHERE user_id = ?";
+            jdbcTemplate.update(updateFriendsCountSql, id);
         }
         return getUser(friendId);
     }

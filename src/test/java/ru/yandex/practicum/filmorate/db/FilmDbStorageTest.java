@@ -93,12 +93,12 @@ public class FilmDbStorageTest {
 
         filmService.addLike(1, 1);
 
-        assertThat(filmService.getFilm(1).getLikes())
+        assertThat(filmService.getFilm(1).getLikesCount())
                 .isEqualTo(1);
 
         filmService.deleteLike(1, 1);
 
-        assertThat(filmService.getFilm(1).getLikes())
+        assertThat(filmService.getFilm(1).getLikesCount())
                 .isEqualTo(0);
     }
 }

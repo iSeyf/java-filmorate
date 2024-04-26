@@ -43,8 +43,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (!films.containsKey(film.getId())) {
             throw new ElementNotFoundException("Объект не найден.");
         }
-        int likes = films.get(film.getId()).getLikes();
-        film.setLikes(likes);
+        int likes = films.get(film.getId()).getLikesCount();
+        film.setLikesCount(likes);
         if (checkValid(film)) {
             films.put(film.getId(), film);
             log.info("Фильм {} обновлен.", film.getName());
@@ -64,20 +64,20 @@ public class InMemoryFilmStorage implements FilmStorage {
     public void addLike(Integer id, Integer userId) {
         getFilm(id);
         filmLikes.get(id).add(userId);
-        getFilm(id).setLikes(getFilm(id).getLikes() + 1);
+        getFilm(id).setLikesCount(getFilm(id).getLikesCount() + 1);
     }
 
     @Override
     public void deleteLike(Integer id, Integer userId) {
         getFilm(id);
         filmLikes.get(id).remove(userId);
-        getFilm(id).setLikes(getFilm(id).getLikes() - 1);
+        getFilm(id).setLikesCount(getFilm(id).getLikesCount() - 1);
     }
 
     @Override
     public List<Film> getTopFilms(int count) {
         return getFilms().stream()
-                .sorted(Comparator.comparingInt(film -> -film.getLikes()))
+                .sorted(Comparator.comparingInt(film -> -film.getLikesCount()))
                 .limit(count)
                 .collect(Collectors.toList());
     }
