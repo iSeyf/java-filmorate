@@ -144,18 +144,18 @@ public class FilmControllerTest {
         filmController.addLike(1, 1);
 
         assertThrows(ElementNotFoundException.class, () -> filmController.addLike(2, 1), "Ошибка не выводится");
-        assertEquals(1, filmController.getFilm(1).getLikes().size(), "Количество лайков не совпадает.");
+        assertEquals(1, filmController.getFilm(1).getLikesCount(), "Количество лайков не совпадает.");
 
         Film updatedFilm = new Film(1, "updatedFilm", "filmDescription",
                 LocalDate.of(1999, 11, 11), 180);
         filmController.updateFilm(updatedFilm);
 
-        assertEquals(1, filmController.getFilm(1).getLikes().size(), "Лайки не передаются в обновленный фильм.");
+        assertEquals(1, filmController.getFilm(1).getLikesCount(), "Лайки не передаются в обновленный фильм.");
 
         filmController.deleteLike(1, 1);
 
         assertThrows(ElementNotFoundException.class, () -> filmController.deleteLike(2, 1), "Ошибка не выводится");
-        assertEquals(0, filmController.getFilm(1).getLikes().size(), "Количество лайков не совпадает.");
+        assertEquals(0, filmController.getFilm(1).getLikesCount(), "Количество лайков не совпадает.");
     }
 
     @Test

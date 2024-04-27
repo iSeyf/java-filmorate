@@ -9,8 +9,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -26,8 +24,7 @@ public class User {
     @Past(message = "Дата рождения не может быть в будущем.")
     @NotNull
     private LocalDate birthday;
-
-    private Set<Integer> friends = new HashSet<>();
+    private int friendsCount;
 
     public User(int id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
@@ -42,14 +39,5 @@ public class User {
         this.login = login;
         this.name = name;
         this.birthday = birthday;
-    }
-
-
-    public void addFriend(Integer id) {
-        friends.add(id);
-    }
-
-    public void deleteFriend(Integer id) {
-        friends.remove(id);
     }
 }

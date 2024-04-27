@@ -12,4 +12,12 @@ public interface UserStorage {
     User updateUser(User user);
 
     User getUser(int id);
+
+    User addFriend(Integer id, Integer friendId);
+
+    User deleteFriend(Integer id, Integer friendId);
+
+    List<User> getFriends(int id);
+
+    List<User> getCommonFriends(Integer id, Integer otherId);
 }
